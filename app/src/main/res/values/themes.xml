@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- App main theme -->
+    <style name="Theme.QuoteOfTheDayApp" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Customize your main theme if needed -->
+    </style>
+
+    <!-- Splash screen theme -->
+    <style name="Theme.QuoteApp.Splash" parent="Theme.SplashScreen">
+        <!-- Background color of the splash screen -->
+        <item name="windowSplashScreenBackground">@color/white</item>
+
+        <!-- App icon shown on splash screen (place image in drawable and update name) -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+
+        <!-- Theme to apply after the splash screen -->
+        <item name="postSplashScreenTheme">@style/Theme.QuoteOfTheDayApp</item>
+    </style>
+
+</resources>

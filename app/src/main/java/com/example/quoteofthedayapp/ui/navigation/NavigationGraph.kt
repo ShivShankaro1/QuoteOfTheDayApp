@@ -13,9 +13,9 @@ import com.example.quoteofthedayapp.viewmodel.ThemeViewModel
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
-    quoteViewModel: QuoteViewModel,
-    profileViewModel: ProfileViewModel,
-    themeViewModel: ThemeViewModel,
+    viewModel: QuoteViewModel,
+    viewModel2: ProfileViewModel,
+    viewModel3: ThemeViewModel,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -26,18 +26,31 @@ fun NavigationGraph(
         composable(Screen.Home.route) {
             HomeScreen(
                 navController = navController,
-                quoteViewModel = quoteViewModel,
-                profileViewModel = profileViewModel
+                viewModel = viewModel,
+                viewModel2 = viewModel2
             )
         }
+
+        composable(Screen.Search.route) {
+            SearchScreen(viewModel = viewModel)
+        }
+
         composable(Screen.Favorites.route) {
-            FavoriteScreen(viewModel = quoteViewModel, onBack = {})
+            FavoriteScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
+
         composable(Screen.Profile.route) {
-            ProfileScreen(profileViewModel = profileViewModel) // ✅ FIXED
+            ProfileScreen(
+                viewModel = viewModel2,
+                onBack = { navController.popBackStack() }
+            )
         }
+
         composable(Screen.More.route) {
-            MoreScreen(viewModel = themeViewModel)
+            MoreScreen(viewModel = viewModel3)
         }
     }
 }

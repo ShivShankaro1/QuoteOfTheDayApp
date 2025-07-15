@@ -11,6 +11,7 @@ import com.example.quoteofthedayapp.ui.navigation.Screen
 fun MainBottomNavigationBar(navController: NavController) {
     val items = listOf(
         Screen.Home,
+        Screen.Search,     // ✅ Inserted Search here
         Screen.Favorites,
         Screen.More
     )
@@ -25,7 +26,7 @@ fun MainBottomNavigationBar(navController: NavController) {
         items.forEach { screen ->
             NavigationBarItem(
                 icon = { Icon(imageVector = screen.icon, contentDescription = screen.route) },
-                label = { Text(text = screen.title) }, // ✅ Use screen.title not route
+                label = { Text(text = screen.title) },
                 selected = currentRoute == screen.route,
                 onClick = {
                     if (currentRoute != screen.route) {

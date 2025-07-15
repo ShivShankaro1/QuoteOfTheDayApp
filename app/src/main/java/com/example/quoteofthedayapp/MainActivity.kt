@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.Crossfade
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import com.example.quoteofthedayapp.data.QuoteDatabase
@@ -33,14 +36,20 @@ class MainActivity : ComponentActivity() {
         )[QuoteViewModel::class.java]
 
         setContent {
-            QuoteOfTheDayAppTheme {
-                val navController = rememberNavController()
-                MainScreen(
-                    navController = navController,
-                    quoteViewModel = quoteViewModel,
-                    profileViewModel = profileViewModel,
-                    themeViewModel = themeViewModel
-                )
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
+            Crossfade(targetState = isDarkTheme, label = "ThemeCrossfade") { isDark ->
+                QuoteOfTheDayAppTheme(darkTheme = isDark) {
+                    // 🔁 This uses your own MainScreen.kt
+                    val navController = rememberNavController()
+
+                    MainScreen(
+                        navController = navController,
+                        viewModel = quoteViewModel,
+                        viewModel2 = profileViewModel,
+                        viewModel3 = themeViewModel
+                    )
+                }
             }
         }
     }

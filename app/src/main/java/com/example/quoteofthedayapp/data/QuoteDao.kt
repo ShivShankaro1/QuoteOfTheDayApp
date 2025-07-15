@@ -12,7 +12,8 @@ interface QuoteDao {
     @Delete
     suspend fun deleteQuote(quote: QuoteEntity)
 
-    @Query("SELECT * FROM quotes")
+    // ✅ Show most recent quotes first
+    @Query("SELECT * FROM quotes ORDER BY id DESC")
     fun getAllFavoriteQuotes(): Flow<List<QuoteEntity>>
 
     @Query("SELECT * FROM quotes WHERE text = :quoteText AND author = :author LIMIT 1")

@@ -11,9 +11,9 @@ import com.example.quoteofthedayapp.viewmodel.ThemeViewModel
 
 @Composable
 fun AppNavigation(
-    profileViewModel: ProfileViewModel,
-    quoteViewModel: QuoteViewModel,
-    themeViewModel: ThemeViewModel
+    viewModel: QuoteViewModel,
+    viewModel2: ProfileViewModel,
+    viewModel3: ThemeViewModel
 ) {
     val navController = rememberNavController()
 
@@ -22,24 +22,31 @@ fun AppNavigation(
         composable(Screen.Home.route) {
             HomeScreen(
                 navController = navController,
-                quoteViewModel = quoteViewModel,
-                profileViewModel = profileViewModel
+                viewModel = viewModel,
+                viewModel2 = viewModel2
             )
+        }
+
+        composable(Screen.Search.route) {
+            SearchScreen(viewModel = viewModel)
         }
 
         composable(Screen.Favorites.route) {
             FavoriteScreen(
-                viewModel = quoteViewModel,
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen(profileViewModel = profileViewModel)
+            ProfileScreen(
+                viewModel = viewModel2,
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.More.route) {
-            MoreScreen(viewModel = themeViewModel)
+            MoreScreen(viewModel = viewModel3)
         }
     }
 }

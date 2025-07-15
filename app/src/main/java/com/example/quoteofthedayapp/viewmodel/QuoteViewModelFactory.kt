@@ -8,10 +8,13 @@ class QuoteViewModelFactory(
     private val repository: QuoteRepository
 ) : ViewModelProvider.Factory {
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(QuoteViewModel::class.java)) {
-            return QuoteViewModel(repository) as T
+        return when {
+            modelClass.isAssignableFrom(QuoteViewModel::class.java) -> {
+                QuoteViewModel(repository) as T
+            }
+            else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

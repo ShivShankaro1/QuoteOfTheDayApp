@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,21 +17,25 @@ import androidx.compose.ui.unit.sp
 import com.example.quoteofthedayapp.viewmodel.QuoteViewModel
 import androidx.navigation.NavController
 import com.example.quoteofthedayapp.ui.navigation.Screen
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun QuoteScreen(
     viewModel: QuoteViewModel,
-    navController: NavController // 🧭 needed to navigate to profile
+    navController: NavController
 ) {
-    val quote = viewModel.currentQuote.value
+    val quote = viewModel.quote.collectAsState().value
     val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // 🔼 Top row with profile button
+        // Top right profile icon
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
@@ -47,7 +51,7 @@ fun QuoteScreen(
             }
         }
 
-        // 🧠 Main content in center
+        // Main content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -63,7 +67,7 @@ fun QuoteScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (quote.text.isNotBlank()) {
+            if (quote.q.isNotBlank()) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -74,13 +78,13 @@ fun QuoteScreen(
                 ) {
                     Column(modifier = Modifier.padding(24.dp)) {
                         Text(
-                            text = "“${quote.text}”",
+                            text = "“${quote.q}”",
                             style = MaterialTheme.typography.titleMedium.copy(fontSize = 20.sp),
                             color = Color.Black
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "- ${quote.author}",
+                            text = "- ${quote.a}",
                             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
                             color = Color.DarkGray
                         )
@@ -95,8 +99,18 @@ fun QuoteScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = { viewModel.nextQuote() },
-                    shape = RoundedCornerShape(12.dp)
+                    onClick = {
+                        if (!isLoading) {
+                            isLoading = true
+                            viewModel.getNextQuote()
+                            coroutineScope.launch {
+                                delay(2000)
+                                isLoading = false
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !isLoading
                 ) {
                     Text("Next Quote")
                 }
@@ -105,7 +119,7 @@ fun QuoteScreen(
                     onClick = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, "“${quote.text}” - ${quote.author}")
+                            putExtra(Intent.EXTRA_TEXT, "“${quote.q}” - ${quote.a}")
                         }
                         context.startActivity(Intent.createChooser(shareIntent, "Share Quote"))
                     },

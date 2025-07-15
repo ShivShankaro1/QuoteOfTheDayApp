@@ -1,80 +1,99 @@
 package com.example.quoteofthedayapp.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.quoteofthedayapp.data.QuoteEntity
 import com.example.quoteofthedayapp.data.QuoteRepository
-import com.example.quoteofthedayapp.model.Quote
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import com.example.quoteofthedayapp.model.QuoteResponse
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class QuoteViewModel(
     private val repository: QuoteRepository
 ) : ViewModel() {
 
-    // Static quote list
-    private val quotes = listOf(
-        Quote("Believe you can and you're halfway there.", "Theodore Roosevelt"),
-        Quote("Do one thing every day that scares you.", "Eleanor Roosevelt"),
-        Quote("Your time is limited, don’t waste it living someone else’s life.", "Steve Jobs"),
-        Quote("Be yourself; everyone else is already taken.", "Oscar Wilde"),
-        Quote("Stay hungry. Stay foolish.", "Steve Jobs")
+    private val _quote = MutableStateFlow(
+        QuoteResponse("Tap 'Next Quote' to begin.", "QuoteOfTheDayApp")
     )
+    val quote: StateFlow<QuoteResponse> = _quote
 
-    // Current quote
-    private var index = quotes.indices.random()
-    val currentQuote = mutableStateOf(quotes[index])
+    private val _favoriteQuotes = MutableStateFlow<List<QuoteResponse>>(emptyList())
+    val favoriteQuotes: StateFlow<List<QuoteResponse>> = _favoriteQuotes
 
-    // Favorite quotes loaded from Room
-    private val _favoriteQuotes = MutableStateFlow<List<Quote>>(emptyList())
-    val favoriteQuotes: StateFlow<List<Quote>> = _favoriteQuotes
+    private val _searchResults = MutableStateFlow<List<QuoteResponse>>(emptyList())
+    val searchResults: StateFlow<List<QuoteResponse>> = _searchResults
+
+    // ✅ Add isSearching StateFlow
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching: StateFlow<Boolean> = _isSearching
+
+    // 🔁 Queue to cache quotes
+    private val quoteQueue = mutableListOf<QuoteResponse>()
 
     init {
-        // Observe database for changes to favorite quotes
         viewModelScope.launch {
             repository.getAllFavorites()
-                .map { entities -> entities.map { it.toQuote() } }
+                .map { entities -> entities.map { it.toQuoteResponse() } }
                 .collect { _favoriteQuotes.value = it }
+        }
+
+        getNextQuote()
+    }
+
+    fun getNextQuote() {
+        viewModelScope.launch {
+            if (quoteQueue.isNotEmpty()) {
+                _quote.value = quoteQueue.removeAt(0)
+            } else {
+                try {
+                    val quotes = repository.fetchMultipleQuotes()
+                    if (quotes.isNotEmpty()) {
+                        quoteQueue.addAll(quotes.drop(1))
+                        _quote.value = quotes.first()
+                    } else {
+                        _quote.value = QuoteResponse("No quotes available", "ZenQuotes")
+                    }
+                } catch (_: Exception) {
+                    _quote.value = QuoteResponse("Failed to fetch quote", "Error")
+                }
+            }
         }
     }
 
-    // Next quote in list
-    fun nextQuote() {
-        index = (index + 1) % quotes.size
-        currentQuote.value = quotes[index]
+    fun searchQuotes(query: String) {
+        viewModelScope.launch {
+            val results = _favoriteQuotes.value.filter {
+                it.q.contains(query, ignoreCase = true) || it.a.contains(query, ignoreCase = true)
+            }
+            _searchResults.value = results
+        }
     }
 
-    // Save current quote to favorites if not already saved
+
     fun saveFavorite() {
-        val current = currentQuote.value
+        val current = _quote.value
         viewModelScope.launch {
-            val exists = repository.isFavorite(current.text, current.author)
+            val exists = repository.isFavorite(current.q, current.a)
             if (!exists) {
                 repository.addFavorite(current.toEntity())
             }
         }
     }
 
-    // Remove a quote from favorites
-    fun removeFavorite(quote: Quote) {
+    fun removeFavorite(quote: QuoteResponse) {
         viewModelScope.launch {
             repository.removeFavorite(quote.toEntity())
         }
     }
 
-    // Convert Quote to Entity
-    private fun Quote.toEntity() = QuoteEntity(
-        text = this.text,
-        author = this.author,
+    private fun QuoteResponse.toEntity() = QuoteEntity(
+        text = this.q,
+        author = this.a,
         isFavorite = true
     )
 
-    // Convert Entity to Quote
-    private fun QuoteEntity.toQuote() = Quote(
-        text = this.text,
-        author = this.author
+    private fun QuoteEntity.toQuoteResponse() = QuoteResponse(
+        q = this.text,
+        a = this.author
     )
 }

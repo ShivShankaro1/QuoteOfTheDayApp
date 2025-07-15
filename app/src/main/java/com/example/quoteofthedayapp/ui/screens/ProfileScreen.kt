@@ -1,12 +1,14 @@
 package com.example.quoteofthedayapp.ui.screens
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,30 +17,58 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.quoteofthedayapp.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel()) {
-    val name by profileViewModel.name.collectAsState()
-    val bio by profileViewModel.bio.collectAsState()
-    val imageUri by profileViewModel.imageUri.collectAsState()
+fun ProfileScreen(
+    viewModel: ProfileViewModel,
+    onBack: () -> Unit
+) {
+    val name by viewModel.name.collectAsState()
+    val bio by viewModel.bio.collectAsState()
+    val imageUri by viewModel.imageUri.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val mobile by viewModel.mobile.collectAsState()
+    val dob by viewModel.dob.collectAsState()
+    val gender by viewModel.gender.collectAsState()
+    val address by viewModel.address.collectAsState()
 
     var editableName by remember { mutableStateOf(name) }
-    var editableEmail by remember { mutableStateOf("sptb1999@gmail.com") }
-    var editableMobile by remember { mutableStateOf("8287354548") }
+    var editableEmail by remember { mutableStateOf(email) }
+    var editableMobile by remember { mutableStateOf(mobile) }
+    var editableDob by remember { mutableStateOf(dob) }
+    var editableGender by remember { mutableStateOf(gender) }
+    var editableAddress by remember { mutableStateOf(address) }
 
-    var isEditingName by remember { mutableStateOf(false) }
-    var isEditingEmail by remember { mutableStateOf(false) }
-    var isEditingMobile by remember { mutableStateOf(false) }
+    var isEditing by remember { mutableStateOf(false) }
+
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            viewModel.updateProfile(
+                editableName,
+                bio,
+                it.toString(),
+                editableEmail,
+                editableMobile,
+                editableDob,
+                editableGender,
+                editableAddress
+            )
+        }
+    }
 
     Scaffold(
         containerColor = Color.Black,
         topBar = {
             TopAppBar(
                 title = { Text("Update Profile", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
             )
         }
@@ -47,66 +77,73 @@ fun ProfileScreen(profileViewModel: ProfileViewModel = viewModel()) {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val painter = rememberAsyncImagePainter(model = if (imageUri.isNotBlank()) Uri.parse(imageUri) else null)
-            Image(
-                painter = painter,
-                contentDescription = "Profile Image",
+
+            Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(120.dp)
                     .clip(CircleShape)
-                    .clickable { /* Optional: image picker */ }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            ProfileField(
-                label = "Name",
-                value = editableName,
-                isEditing = isEditingName,
-                onValueChange = { editableName = it },
-                onEditClick = { isEditingName = !isEditingName }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileField(
-                label = "Mobile Number",
-                value = editableMobile,
-                isEditing = isEditingMobile,
-                onValueChange = { editableMobile = it },
-                onEditClick = { isEditingMobile = !isEditingMobile }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileField(
-                label = "Email",
-                value = editableEmail,
-                isEditing = isEditingEmail,
-                onValueChange = { editableEmail = it },
-                onEditClick = { isEditingEmail = !isEditingEmail }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                    profileViewModel.updateProfile(
-                        name = editableName,
-                        bio = bio,
-                        imageUri = imageUri
-                    )
-                    // Save other details if needed in preferences
-                    isEditingName = false
-                    isEditingEmail = false
-                    isEditingMobile = false
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    .clickable { imagePicker.launch("image/*") },
+                contentAlignment = Alignment.Center
             ) {
-                Text("Save", fontWeight = FontWeight.Bold)
+                Image(
+                    painter = painter,
+                    contentDescription = "Profile Image",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ProfileField("Name", editableName, isEditing) { editableName = it }
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileField("Mobile Number", editableMobile, isEditing) { editableMobile = it }
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileField("Email", editableEmail, isEditing) { editableEmail = it }
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileField("DOB", editableDob, isEditing) { editableDob = it }
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileField("Gender", editableGender, isEditing) { editableGender = it }
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileField("Address", editableAddress, isEditing) { editableAddress = it }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(
+                    onClick = { isEditing = !isEditing },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                ) {
+                    Text(if (isEditing) "Cancel Edit" else "Edit")
+                }
+
+                Button(
+                    onClick = {
+                        viewModel.updateProfile(
+                            name = editableName,
+                            bio = bio,
+                            imageUri = imageUri,
+                            email = editableEmail,
+                            mobile = editableMobile,
+                            dob = editableDob,
+                            gender = editableGender,
+                            address = editableAddress
+                        )
+                        isEditing = false
+                    },
+                    enabled = isEditing,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                ) {
+                    Text("Save")
+                }
             }
         }
     }
@@ -117,23 +154,13 @@ fun ProfileField(
     label: String,
     value: String,
     isEditing: Boolean,
-    onValueChange: (String) -> Unit,
-    onEditClick: () -> Unit
+    onValueChange: (String) -> Unit
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("$label:", color = Color.White) },
+        label = { Text(label, color = Color.White) },
         enabled = isEditing,
-        trailingIcon = {
-            IconButton(onClick = onEditClick) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = Color.White
-                )
-            }
-        },
         modifier = Modifier.fillMaxWidth(),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color.Gray,

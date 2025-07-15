@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import com.example.quoteofthedayapp.ui.components.MainBottomNavigationBar
 import com.example.quoteofthedayapp.ui.navigation.NavigationGraph
 import com.example.quoteofthedayapp.ui.navigation.Screen
@@ -24,17 +24,17 @@ import com.example.quoteofthedayapp.viewmodel.ThemeViewModel
 @Composable
 fun MainScreen(
     navController: NavHostController,
-    quoteViewModel: QuoteViewModel,
-    profileViewModel: ProfileViewModel,
-    themeViewModel: ThemeViewModel
+    viewModel: QuoteViewModel,
+    viewModel2: ProfileViewModel,
+    viewModel3: ThemeViewModel
 ) {
-    val userName by profileViewModel.name.collectAsStateWithLifecycle()
+    val userName by viewModel2.name.collectAsStateWithLifecycle()
     val initial = userName.firstOrNull()?.uppercase() ?: "?"
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { /* Empty title */ },
+                title = {},
                 actions = {
                     IconButton(onClick = {
                         navController.navigate(Screen.Profile.route)
@@ -70,9 +70,9 @@ fun MainScreen(
         ) {
             NavigationGraph(
                 navController = navController,
-                quoteViewModel = quoteViewModel,
-                profileViewModel = profileViewModel,
-                themeViewModel = themeViewModel
+                viewModel = viewModel,
+                viewModel2 = viewModel2,
+                viewModel3 = viewModel3
             )
         }
     }

@@ -2,7 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
-    id("kotlin-kapt") // ✅ Required for Room annotation processing
+    id("kotlin-kapt") // ✅ Required for Room
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23" // ✅ For kotlinx.serialization
 }
 
 android {
@@ -61,9 +62,13 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3:1.2.1")
+    implementation ("androidx.compose.material:material-icons-extended")
 
     // ✅ Compose Navigation
     implementation("androidx.navigation:navigation-compose:2.7.5")
+    implementation ("com.google.android.play:review-ktx:2.0.1")
+
+
 
     // ✅ Lifecycle + ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
@@ -78,14 +83,30 @@ dependencies {
 
     // ✅ Activity Compose
     implementation("androidx.activity:activity-compose:1.9.0")
+    
+    implementation("androidx.compose.material:material-icons-extended")
 
-    // ✅ DataStore for persistent profile storage
+
+    // ✅ DataStore for profile persistence
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    // ✅ Room dependencies for favorite quotes persistence
+    // ✅ Room for local database
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+
+    // ✅ Kotlinx Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // ✅ Retrofit for API calls
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.8.0")
+
+    // ✅ Ktor (optional - only if used)
+    implementation("io.ktor:ktor-client-core:2.3.4")
+    implementation("io.ktor:ktor-client-okhttp:2.3.4")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
 
     // ✅ Debug tools
     debugImplementation("androidx.compose.ui:ui-tooling")
